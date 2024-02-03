@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import math
 
 
 # Create dictionary like this: {0:{inf,inf,inf..},1:{inf,inf..},..., num_players:{inf,..}}
@@ -19,6 +20,7 @@ def build_exchanging_graph(valuations, allocation):
     min_ratio = float('inf')
 
     for player in range(num_players):
+        min_ratio = float('inf')
         for other_player in range(num_players):
             if other_player != player:
                 for object in range(len(allocation[player])):
@@ -28,38 +30,63 @@ def build_exchanging_graph(valuations, allocation):
                             min_ratio = ratio
                 bundle_ratios[player][other_player] = min_ratio
                 G.add_edge(player, other_player, weight=min_ratio)
-                min_ratio = float('inf')
     return G
 
 
-def visualize_graph(graph):
-    for i, j, data in graph.edges(data=True):
-        if i != j:
-            print(f"{i} -> {j} = {data['weight']:.2f}")
+def log_transform_weights(graph):
+    new_weights = []
 
-    pos = nx.spring_layout(graph)
-    labels = {(i, j): f'{graph[i][j]["weight"]:.2f}' for i, j in graph.edges}
+    for edge in graph.edges(data=True):
+        weight = edge[2].get('weight', 1.0)  # Default weight to 1.0 if not specified
 
-    for node in graph.nodes:
-        # Ensure i -> i edge
-        graph.add_edge(node, node, weight=0.0)
+        # Check if the weight is positive before taking the logarithm
+        if weight > 0:
+            log_weight = math.log(weight)
+            new_weights.append(log_weight)
+            # Update the graph with the log-transformed weight
+            graph[edge[0]][edge[1]]['weight'] = log_weight
+    print("new weights: ", new_weights)
 
-        # Ensure j -> i edge for all other nodes
-        for other_node in graph.nodes:
-            if other_node != node:
-                graph.add_edge(other_node, node, weight=0.0)
-
-    nx.draw(graph, pos, with_labels=True, font_weight='bold')
-    nx.draw_networkx_edge_labels(graph, pos, edge_labels=labels)
-
-    plt.show()
+    # return new_weights
 
 
+def has_negative_weight(graph):
+    log_transform_weights(graph)
+    num_nodes = graph.number_of_nodes()
 
-# Example usage:
-valuations = [[3, 1, 6], [6, 3, 1], [1, 6, 3]]
-allocation = [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
+    for source in graph.nodes:
+        distances = {node: float('inf') for node in graph.nodes}
+        distances[source] = 0
+
+        for _ in range(num_nodes - 1):
+            for u, v, data in graph.edges(data=True):
+                weight = data.get('weight', 0)
+                if distances[u] + weight < distances[v]:
+                    distances[v] = distances[u] + weight
+
+        for u, v, data in graph.edges(data=True):
+            weight = data.get('weight', 0)
+            if distances[u] + weight < distances[v]:
+                return True  # Detected a negative weight cycle
+
+    return False  # No negative weight cycle found
+
+
+#
+# valuations = [[3, 1, 6], [6, 3, 1], [1, 6, 3]]
+# allocation = [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
+
+valuations = [[10, 20, 30, 40], [40, 30, 20, 10]]
+allocation = [[0, 0.7, 1, 1], [1, 0.3, 0, 0]]
 
 graph = build_exchanging_graph(valuations, allocation)
 
-visualize_graph(graph)
+for i, j, data in graph.edges(data=True):
+    if i != j:
+        print(f"{i} -> {j} = {data['weight']:.2f}")
+
+has_negative_cycle = has_negative_weight(graph)
+if has_negative_cycle:
+    print("IS NOT PARETO EFFICIENT")
+else:
+    print("IS PARETO EFFICIENT ")
