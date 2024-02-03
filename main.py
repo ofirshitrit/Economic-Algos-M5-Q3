@@ -72,21 +72,21 @@ def has_negative_weight(graph):
     return False  # No negative weight cycle found
 
 
-#
-# valuations = [[3, 1, 6], [6, 3, 1], [1, 6, 3]]
-# allocation = [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
+if __name__ == '__main__':
+    valuations = [[10, 20, 30, 40], [40, 30, 20, 10]]
+    allocation = [[0, 0.7, 1, 1], [1, 0.3, 0, 0]]
 
-valuations = [[10, 20, 30, 40], [40, 30, 20, 10]]
-allocation = [[0, 0.7, 1, 1], [1, 0.3, 0, 0]]
+    # valuations = [[3, 1, 6], [6, 3, 1], [1, 6, 3]]
+    # allocation = [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
 
-graph = build_exchanging_graph(valuations, allocation)
+    graph = build_exchanging_graph(valuations, allocation)
 
-for i, j, data in graph.edges(data=True):
-    if i != j:
-        print(f"{i} -> {j} = {data['weight']:.2f}")
+    for i, j, data in graph.edges(data=True):
+        if i != j:
+            print(f"{i} -> {j} = {data['weight']:.2f}")
 
-has_negative_cycle = has_negative_weight(graph)
-if has_negative_cycle:
-    print("IS NOT PARETO EFFICIENT")
-else:
-    print("IS PARETO EFFICIENT ")
+    has_negative_cycle = has_negative_weight(graph)
+    if has_negative_cycle:
+        print("The allocation is NOT pareto efficient")
+    else:
+        print("The allocation is pareto efficient")
