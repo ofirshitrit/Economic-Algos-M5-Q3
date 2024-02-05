@@ -53,6 +53,9 @@ def is_pareto_efficient(valuations, allocation):
     - valuations (list): List of lists representing valuations of players for each object.
     - allocation (list): List of lists representing the allocation of objects to players.
 
+    Returns:
+    - bool: True if the allocation is Pareto efficient, False otherwise.
+
     Prints:
     - str: Output indicating whether the allocation is Pareto efficient or not.
 
@@ -60,26 +63,30 @@ def is_pareto_efficient(valuations, allocation):
     >>> allocation = [[0, 0.7, 1, 1], [1, 0.3, 0, 0]]
     >>> is_pareto_efficient(valuations, allocation)
     Yes! - The allocation is pareto efficient
+    True
 
     >>> valuations = [[3, 1, 6], [6, 3, 1], [1, 6, 3]]
     >>> allocation = [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
     >>> is_pareto_efficient(valuations, allocation)
     Yes! - The allocation is pareto efficient
+    True
 
     >>> valuations = [[3, 1, 6], [6, 3, 1], [1, 6, 3]]
     >>> allocation = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     >>> is_pareto_efficient(valuations, allocation)
     No! - The allocation is NOT pareto efficient
+    False
 
     """
-
     graph = build_exchanging_graph(valuations, allocation)
     has_negative_cycle = has_cycle_with_small_product(graph)
+
     if has_negative_cycle:
         print("No! - The allocation is NOT pareto efficient")
+        return False
     else:
         print("Yes! - The allocation is pareto efficient")
-
+        return True
 
 
 if __name__ == '__main__':

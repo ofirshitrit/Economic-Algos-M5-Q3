@@ -21,11 +21,12 @@ def pareto_improvement(valuations, allocation, transfer_amount=0.001, min_transf
     No! - The allocation is NOT pareto efficient
     [['0.99', '0.00', '0.00'], ['0.00', '1.00', '0.00'], ['0.01', '0.01', '1.01']]
 
-     >>> valuations = [[10, 20, 30, 40], [40, 30, 20, 10]]
+    >>> valuations = [[10, 20, 30, 40], [40, 30, 20, 10]]
     >>> allocation = [[0, 0.7, 1, 1], [1, 0.3, 0, 0]]
     >>> pareto_improvement(valuations, allocation, transfer_amount=0.01, min_transfer_amount=0.001)
     Yes! - The allocation is pareto efficient
     Initial allocation is already Pareto efficient.
+    [[0, 0.7, 1, 1], [1, 0.3, 0, 0]]
     """
     if is_pareto_efficient(valuations, allocation):
         print("Initial allocation is already Pareto efficient.")
@@ -63,3 +64,4 @@ def pareto_improvement(valuations, allocation, transfer_amount=0.001, min_transf
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
+
