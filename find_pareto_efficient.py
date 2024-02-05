@@ -1,58 +1,47 @@
 import networkx as nx
 
-def find_pareto_improvement(graph):
-    n = len(graph.nodes)
-    G = graph.copy()
+from is_pareto_efficient import is_pareto_efficient
 
-    # Initialize value ratios
-    value_ratios = {edge: G[edge[0]][edge[1]]['value_ratio'] for edge in G.edges}
 
-    # Iterate until convergence
-    while True:
-        # Check if current distribution is Pareto efficient
-        if is_pareto_efficient(G, n):
-            break
+def pareto_improvement(valuations, allocation, transfer_amount=0.001):
+    # Check if the initial allocation is Pareto efficient
+    if is_pareto_efficient(valuations, allocation):
+        print("Initial allocation is already Pareto efficient.")
+        return allocation
 
-        # Find edge with the minimum value ratio
-        min_edge = min(value_ratios, key=value_ratios.get)
+    # Create a directed graph to represent the players and their allocations
+    G = nx.DiGraph()
 
-        # Calculate the transfer amount 'e' for the minimum edge
-        e = calculate_transfer_amount(G, min_edge)
+    # Add nodes for each player and allocate their resources
+    for i, player_allocation in enumerate(allocation):
+        G.add_node(i, allocation=player_allocation)
 
-        # Update the graph with the transfer
-        G = transfer_resources(G, min_edge, e)
+    # Add edges to represent the direction of resource transfers
+    for i in range(len(allocation) - 1):
+        G.add_edge(i, i + 1)
 
-        # Update value ratios
-        value_ratios = {edge: G[edge[0]][edge[1]]['value_ratio'] for edge in G.edges}
+    # Perform Pareto improvement
+    for i in range(len(allocation) - 1):
+        # Get the current and next player's allocation
+        current_allocation = G.nodes[i]['allocation']
+        next_allocation = G.nodes[i + 1]['allocation']
 
-    return G
+        # Transfer a small amount of resources from the current player to the next player
+        updated_current_allocation = [x - transfer_amount for x in current_allocation]
+        updated_next_allocation = [x + transfer_amount for x in next_allocation]
 
-def is_pareto_efficient(graph, n):
-    for node in graph.nodes:
-        neighbors = list(graph.neighbors(node))
-        for i in range(n):
-            if sum(graph[node][neighbor]['value_ratio'] for neighbor in neighbors) < 1:
-                return False
-    return True
+        # Update the allocations in the graph
+        G.nodes[i]['allocation'] = updated_current_allocation
+        G.nodes[i + 1]['allocation'] = updated_next_allocation
 
-def calculate_transfer_amount(graph, edge):
-    source, target = edge
-    value_ratio = graph[source][target]['value_ratio']
-    return 1 / value_ratio
 
-def transfer_resources(graph, edge, e):
-    source, target = edge
-    graph.nodes[source]['resource'] -= e
-    graph.nodes[target]['resource'] += e
-    return graph
+    # Return the final allocation after Pareto improvement
+    return [G.nodes[i]['allocation'] for i in range(len(allocation))]
 
-# Example usage
-distribution_graph = nx.DiGraph()
-distribution_graph.add_edges_from([('A', 'B', {'value_ratio': 0.5}),
-                                   ('B', 'C', {'value_ratio': 0.3}),
-                                   ('C', 'A', {'value_ratio': 0.2})])
-nx.set_node_attributes(distribution_graph, 1, 'resource')
 
-pareto_improvement_graph = find_pareto_improvement(distribution_graph)
-print("Pareto Improvement Distribution:")
-print(pareto_improvement_graph.edges(data=True))
+# Example usage:
+valuations = [[3, 1, 6], [6, 3, 1], [1, 6, 3]]
+initial_allocation = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+
+final_allocation = pareto_improvement(valuations, initial_allocation, transfer_amount=0.01)
+print("Final Pareto efficient allocation:", final_allocation)
