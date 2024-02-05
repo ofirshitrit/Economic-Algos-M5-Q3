@@ -1,8 +1,32 @@
 import networkx as nx
 from is_pareto_efficient import is_pareto_efficient
 
-
 def pareto_improvement(valuations, allocation, transfer_amount=0.001, min_transfer_amount=0.001):
+    """
+    Perform Pareto improvement on the given allocation.
+
+    Parameters:
+    - valuations (List[List[int]]): A list of lists representing the valuations of players for each item.
+    - allocation (List[List[int]]): The initial allocation of resources to players.
+    - transfer_amount (float): The amount of resources to transfer in each step.
+    - min_transfer_amount (float): The minimum transfer amount required for a transfer to be considered.
+
+    Returns:
+    List[List[int]]: The final Pareto efficient allocation.
+
+    Examples:
+    >>> valuations = [[3, 1, 6], [6, 3, 1], [1, 6, 3]]
+    >>> allocation = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    >>> pareto_improvement(valuations, allocation, transfer_amount=0.01, min_transfer_amount=0.001)
+    No! - The allocation is NOT pareto efficient
+    [['0.99', '0.00', '0.00'], ['0.00', '1.00', '0.00'], ['0.01', '0.01', '1.01']]
+
+     >>> valuations = [[10, 20, 30, 40], [40, 30, 20, 10]]
+    >>> allocation = [[0, 0.7, 1, 1], [1, 0.3, 0, 0]]
+    >>> pareto_improvement(valuations, allocation, transfer_amount=0.01, min_transfer_amount=0.001)
+    Yes! - The allocation is pareto efficient
+    Initial allocation is already Pareto efficient.
+    """
     if is_pareto_efficient(valuations, allocation):
         print("Initial allocation is already Pareto efficient.")
         return allocation
@@ -33,11 +57,9 @@ def pareto_improvement(valuations, allocation, transfer_amount=0.001, min_transf
             G.nodes[i + 1]['allocation'] = updated_next_allocation
 
     # Return the final allocation after Pareto improvement
-    return [G.nodes[i]['allocation'] for i in range(len(allocation))]
+    return [[format(x, '.2f') for x in G.nodes[i]['allocation']] for i in range(len(allocation))]
 
 
-valuations = [[3, 1, 6], [6, 3, 1], [1, 6, 3]]
-initial_allocation = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-
-final_allocation = pareto_improvement(valuations, initial_allocation, transfer_amount=0.01, min_transfer_amount=0.001)
-print("Final Pareto efficient allocation:", final_allocation)
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
