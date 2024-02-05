@@ -1,10 +1,8 @@
 import networkx as nx
-
 from is_pareto_efficient import is_pareto_efficient
 
 
-def pareto_improvement(valuations, allocation, transfer_amount=0.001):
-    # Check if the initial allocation is Pareto efficient
+def pareto_improvement(valuations, allocation, transfer_amount=0.001, min_transfer_amount=0.001):
     if is_pareto_efficient(valuations, allocation):
         print("Initial allocation is already Pareto efficient.")
         return allocation
@@ -26,22 +24,20 @@ def pareto_improvement(valuations, allocation, transfer_amount=0.001):
         current_allocation = G.nodes[i]['allocation']
         next_allocation = G.nodes[i + 1]['allocation']
 
-        # Transfer a small amount of resources from the current player to the next player
-        updated_current_allocation = [x - transfer_amount for x in current_allocation]
-        updated_next_allocation = [x + transfer_amount for x in next_allocation]
+        # Check if the transfer is feasible
+        if any(x > min_transfer_amount for x in current_allocation):
+            updated_current_allocation = [max(x - transfer_amount, 0) for x in current_allocation]
+            updated_next_allocation = [x + transfer_amount for x in next_allocation]
 
-        # Update the allocations in the graph
-        G.nodes[i]['allocation'] = updated_current_allocation
-        G.nodes[i + 1]['allocation'] = updated_next_allocation
-
+            G.nodes[i]['allocation'] = updated_current_allocation
+            G.nodes[i + 1]['allocation'] = updated_next_allocation
 
     # Return the final allocation after Pareto improvement
     return [G.nodes[i]['allocation'] for i in range(len(allocation))]
 
 
-# Example usage:
 valuations = [[3, 1, 6], [6, 3, 1], [1, 6, 3]]
 initial_allocation = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 
-final_allocation = pareto_improvement(valuations, initial_allocation, transfer_amount=0.01)
+final_allocation = pareto_improvement(valuations, initial_allocation, transfer_amount=0.01, min_transfer_amount=0.001)
 print("Final Pareto efficient allocation:", final_allocation)
